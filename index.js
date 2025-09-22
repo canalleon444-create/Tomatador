@@ -1,5 +1,5 @@
+const { Client, GatewayIntentBits, Partials } = require("discord.js");
 require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
 
 const client = new Client({
   intents: [
@@ -7,32 +7,47 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers
   ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-const TOKEN = process.env.TOKEN;
-const USER_ID = process.env.USER_ID; // ID da pessoa que o bot vai reagir
-const EMOJI = "🍅"; // pode trocar pelo emoji que quiser
+const reactionRoles = {
+  "🍎": "782961153012793375", // cargo ID 1
+  "🍌": "719024507293139014", // cargo ID 2
+  ":smili:": "948716563723325540"  // cargo ID 3
+};
 
-client.once("ready", () => {
-  console.log(`✅ Bot online como ${client.user.tag}`);
-});
+client.on("messageReactionAdd", async (reaction, user) => {
+  if (user.bot) return;
 
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return; // ignora outros bots
-  if (message.author.id === USER_ID) {
-    try {
-      await message.react(EMOJI);
-      console.log(`Reagi com ${EMOJI} à mensagem de ${message.author.tag}`);
-    } catch (err) {
-      console.error("Erro ao reagir:", err);
+  if (reaction.message.id === "ID_DA_MENSAGEM") {
+    const roleId = reactionRoles[reaction.emoji.name];
+    if (!roleId) return;
+
+    const guild = reaction.message.guild;
+    const member = guild.members.cache.get(user.id);
+    if (member) {
+      await member.roles.add(roleId);
+      console.log(`Adicionei o cargo ${roleId} para ${user.tag}`);
     }
   }
 });
 
-if (!TOKEN || !USER_ID) {
-  console.error("⚠️ Faltando TOKEN ou USER_ID no .env / Environment Variables");
-  process.exit(1);
-}
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (user.bot) return;
 
-client.login(TOKEN);
+  if (reaction.message.id === "ID_DA_MENSAGEM") {
+    const roleId = reactionRoles[reaction.emoji.name];
+    if (!roleId) return;
+
+    const guild = reaction.message.guild;
+    const member = guild.members.cache.get(user.id);
+    if (member) {
+      await member.roles.remove(roleId);
+      console.log(`Removi o cargo ${roleId} de ${user.tag}`);
+    }
+  }
+});
+
+client.login(process.env.TOKEN);
