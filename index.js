@@ -12,7 +12,7 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 const USER_ID = process.env.USER_ID; // ID da pessoa que o bot vai reagir
-const EMOJI = "👍"; // pode trocar pelo emoji que quiser
+const EMOJI = "🍅"; // pode trocar pelo emoji que quiser
 
 client.once("ready", () => {
   console.log(`✅ Bot online como ${client.user.tag}`);
