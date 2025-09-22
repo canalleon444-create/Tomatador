@@ -1,9 +1,8 @@
-// 1️⃣ Carregar variáveis de ambiente
 require('dotenv').config();
-
 const { Client, GatewayIntentBits } = require('discord.js');
+const express = require('express'); // Servidor fake para Render
 
-// 2️⃣ Pegar variáveis do .env
+// Variáveis de ambiente
 const TOKEN = process.env.TOKEN;
 const USER_ID = process.env.USER_ID;
 const EMOJI = process.env.EMOJI || '😎';
@@ -13,7 +12,7 @@ if (!TOKEN || !USER_ID) {
   process.exit(1);
 }
 
-// 3️⃣ Criar cliente Discord
+// === BOT DISCORD ===
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -22,17 +21,15 @@ const client = new Client({
   ]
 });
 
-// 4️⃣ Evento: bot ficou online
 client.once('ready', () => {
   console.log(`Bot online: ${client.user.tag}`);
 });
 
-// 5️⃣ Evento: quando uma mensagem é criada
 client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;          // Ignora bots
-  if (message.author.id === USER_ID) {     // Verifica usuário específico
+  if (message.author.bot) return;
+  if (message.author.id === USER_ID) {
     try {
-      await message.react(EMOJI);          // Reage com o emoji
+      await message.react(EMOJI);
       console.log(`Reagi ${EMOJI} em mensagem de ${message.author.tag}`);
     } catch (err) {
       console.error('Erro ao reagir:', err);
@@ -40,5 +37,15 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// 6️⃣ Logar o bot usando o token
 client.login(TOKEN);
+
+// === SERVIDOR FAKE PARA RENDER ===
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => res.send('Bot online e rodando no Render!'));
+
+app.listen(PORT, () => {
+  console.log(`Servidor fake rodando na porta ${PORT}`);
+});
+  
