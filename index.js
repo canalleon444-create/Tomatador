@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express'); // Servidor fake para Render
 
-// Variáveis de ambiente
+// Variáveis de ambiente 
 const TOKEN = process.env.TOKEN;
 const USER_ID = process.env.USER_ID;
 const EMOJI = process.env.EMOJI || '😎';
