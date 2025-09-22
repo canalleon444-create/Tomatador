@@ -1,3 +1,17 @@
+// --- Servidor fake para Render ---
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Bot está rodando!");
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Servidor fake rodando na porta ${PORT}`);
+});
+
+// --- Bot Discord ---
 require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 
@@ -6,32 +20,39 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageReactions
   ],
 });
 
 const TOKEN = process.env.TOKEN;
-const USER_ID = process.env.USER_ID; // ID da pessoa que o bot vai reagir
-const EMOJI = "👍"; // pode trocar pelo emoji que quiser
+
+// Defina aqui os usuários e emojis
+const reactionsMap = {
+  "782961153012793375": "🍅",
+  "948716563723325540": ":smili:",
+  "719024507293139014": "🍌"
+};
 
 client.once("ready", () => {
-  console.log(`✅ Bot online como ${client.user.tag}`);
+  console.log(`🤖 Bot online como ${client.user.tag}`);
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return; // ignora outros bots
-  if (message.author.id === USER_ID) {
-    try {
-      await message.react(EMOJI);
-      console.log(`Reagi com ${EMOJI} à mensagem de ${message.author.tag}`);
-    } catch (err) {
-      console.error("Erro ao reagir:", err);
-    }
+  if (message.author.bot) return;
+
+  const emoji = reactionsMap[message.author.id];
+  if (!emoji) return;
+
+  try {
+    await message.react(emoji);
+    console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+  } catch (err) {
+    console.error("Erro ao reagir:", err);
   }
 });
 
-if (!TOKEN || !USER_ID) {
-  console.error("⚠️ Faltando TOKEN ou USER_ID no .env / Environment Variables");
+if (!TOKEN) {
+  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
   process.exit(1);
 }
 
