@@ -1,53 +1,59 @@
-const { Client, GatewayIntentBits, Partials } = require("discord.js");
+// --- Servidor fake para Render ---
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Bot está rodando!");
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Servidor fake rodando na porta ${PORT}`);
+});
+
+// --- Bot Discord ---
 require("dotenv").config();
+const { Client, GatewayIntentBits } = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMessageReactions
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-const reactionRoles = {
-  "🍎": "782961153012793375", // cargo ID 1
-  "🍌": "719024507293139014", // cargo ID 2
-  ":smili:": "948716563723325540"  // cargo ID 3
+const TOKEN = process.env.TOKEN;
+
+// Defina aqui os usuários e emojis
+const reactionsMap = {
+  "782961153012793375": "🍅",
+  "948716563723325540": ":smili:",
+  "719024507293139014": "🍌"
 };
 
-client.on("messageReactionAdd", async (reaction, user) => {
-  if (user.bot) return;
+client.once("ready", () => {
+  console.log(`🤖 Bot online como ${client.user.tag}`);
+});
 
-  if (reaction.message.id === "ID_DA_MENSAGEM") {
-    const roleId = reactionRoles[reaction.emoji.name];
-    if (!roleId) return;
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
 
-    const guild = reaction.message.guild;
-    const member = guild.members.cache.get(user.id);
-    if (member) {
-      await member.roles.add(roleId);
-      console.log(`Adicionei o cargo ${roleId} para ${user.tag}`);
-    }
+  const emoji = reactionsMap[message.author.id];
+  if (!emoji) return;
+
+  try {
+    await message.react(emoji);
+    console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+  } catch (err) {
+    console.error("Erro ao reagir:", err);
   }
 });
 
-client.on("messageReactionRemove", async (reaction, user) => {
-  if (user.bot) return;
+if (!TOKEN) {
+  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
+  process.exit(1);
+}
 
-  if (reaction.message.id === "ID_DA_MENSAGEM") {
-    const roleId = reactionRoles[reaction.emoji.name];
-    if (!roleId) return;
-
-    const guild = reaction.message.guild;
-    const member = guild.members.cache.get(user.id);
-    if (member) {
-      await member.roles.remove(roleId);
-      console.log(`Removi o cargo ${roleId} de ${user.tag}`);
-    }
-  }
-});
-
-client.login(process.env.TOKEN);
+client.login(TOKEN);
