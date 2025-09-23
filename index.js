@@ -26,11 +26,10 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// Defina aqui os usuários e emojis
+// Defina aqui os usuários e emojis (vários emojis por usuário em array)
 const reactionsMap = {
-  "782961153012793375": "🍅",
-  "719024507293139014": "<:smili:1419829654273130506>",
- // "719024507293139014": "🍌"
+  "782961153012793375": ["🍅"],
+  "719024507293139014": ["<:smili:1419829654273130506>", "🍌"]
 };
 
 client.once("ready", () => {
@@ -40,14 +39,16 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  const emoji = reactionsMap[message.author.id];
-  if (!emoji) return;
+  const emojis = reactionsMap[message.author.id];
+  if (!emojis) return;
 
-  try {
-    await message.react(emoji);
-    console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
-  } catch (err) {
-    console.error("Erro ao reagir:", err);
+  for (const emoji of emojis) {
+    try {
+      await message.react(emoji);
+      console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+    } catch (err) {
+      console.error(`Erro ao reagir com ${emoji}:`, err);
+    }
   }
 });
 
