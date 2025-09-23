@@ -29,7 +29,7 @@ const TOKEN = process.env.TOKEN;
 // Defina aqui os usuários e emojis (vários emojis por usuário em array)
 const reactionsMap = {
   "782961153012793375": ["🍅"],
-  "719024507293139014": ["<:smili:1419829654273130506>", "🍌"]
+  "719024507293139014": ["<:smili:1419829654273130506>"]
 };
 
 client.once("ready", () => {
