@@ -11,10 +11,11 @@
     "node": "22.x"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.53",
+    "express": "^4.19.2",
     "discord.js": "^14.15.0",
-    "gif-encoder-2": "^1.0.5",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "@napi-rs/canvas": "^0.1.53",
+    "gif-encoder-2": "^1.0.5"
   },
   "author": "SeuNome",
   "license": "MIT"
