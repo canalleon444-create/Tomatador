@@ -20,17 +20,17 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageReactions
   ],
 });
 
 const TOKEN = process.env.TOKEN;
 
-// --- Defina os usuários e seus emojis ---
+// Defina aqui os usuários e emojis
+// Para emoji customizado use "nome:id"
 const reactionsMap = {
-  "782961153012793375": "🍅",                         // Usuário normal
-  "606183739084636198": "<:smili:1419829654273130506>", // Usuário com emoji customizado
-  "123456789012345678": "🍌"                          // Outro usuário exemplo
+  "719024507293139014": "🍅",                     // emoji normal
+  "606183739084636198": "smili:1419829654273130506" // emoji customizado
 };
 
 client.once("ready", () => {
@@ -44,8 +44,21 @@ client.on("messageCreate", async (message) => {
   if (!emoji) return;
 
   try {
-    await message.react(emoji);
-    console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+    if (emoji.includes(":")) {
+      // Emoji customizado
+      const emojiId = emoji.split(":")[1];
+      const customEmoji = client.emojis.cache.get(emojiId);
+      if (customEmoji) {
+        await message.react(customEmoji);
+        console.log(`Reagi com ${customEmoji.name} à mensagem de ${message.author.tag}`);
+      } else {
+        console.log(`Emoji customizado ${emoji} não encontrado no cache do bot.`);
+      }
+    } else {
+      // Emoji normal
+      await message.react(emoji);
+      console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+    }
   } catch (err) {
     console.error("Erro ao reagir:", err);
   }
