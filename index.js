@@ -34,8 +34,8 @@ if (!TOKEN) {
 // --- Usuários e emojis ---
 const reactionsMap = {
   "782961153012793375": "🍅",                      // emoji normal
-  "719024507293139014": "smili:1419829654273130506", // emoji customizado
-  "123456789012345678": "🍌"                      // outro usuário exemplo
+  "606183739084636198": "smili:1419829654273130506", // emoji customizado
+  "719024507293139014": "🍌"                      // outro usuário exemplo
 };
 
 client.once("ready", () => {
