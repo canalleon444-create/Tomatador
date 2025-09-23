@@ -26,10 +26,13 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// Mapa de usuários e emojis (use ID de usuário e ID do emoji customizado)
+// Map de usuários e seus respectivos emojis
+// Use "<:nome:ID>" para emojis customizados
 const reactionsMap = {
-  "719024507293139014": "🍅", // Emoji padrão
-  "606183739084636198": "1419829654273130506" // Somente ID do emoji customizado
+  "719024507293139014": "🍅", // emoji normal
+  "606183739084636198": "<:smili:1369088199619772548>", // emoji customizado
+  // Adicione mais usuários se quiser:
+  // "ID_DO_USUARIO": "EMOJI"
 };
 
 client.once("ready", () => {
@@ -39,25 +42,13 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  const emojiId = reactionsMap[message.author.id];
-  if (!emojiId) return;
+  const emoji = reactionsMap[message.author.id];
+  if (!emoji) return;
 
   try {
-    let emojiToReact;
-
-    // Se emojiId é número, tentamos pegar do cache de emojis do servidor
-    if (!isNaN(emojiId)) {
-      emojiToReact = message.guild.emojis.cache.get(emojiId);
-      if (!emojiToReact) {
-        console.warn(`⚠️ Emoji customizado ${emojiId} não encontrado no servidor "${message.guild.name}"`);
-        return;
-      }
-    } else {
-      emojiToReact = emojiId; // emoji padrão Unicode
-    }
-
-    await message.react(emojiToReact);
-    console.log(`✅ Reagi com ${emojiToReact} à mensagem de ${message.author.tag}`);
+    // Reage com emoji customizado ou normal
+    await message.react(emoji);
+    console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
   } catch (err) {
     console.error("❌ Erro ao reagir:", err);
   }
