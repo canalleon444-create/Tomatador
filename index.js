@@ -26,16 +26,10 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-if (!TOKEN) {
-  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
-  process.exit(1);
-}
-
-// --- Usuários e emojis ---
+// Defina aqui os usuários e emojis (para emojis customizados use "nome:id")
 const reactionsMap = {
-  "782961153012793375": "🍅",                      // emoji normal
-  "606183739084636198": "smili:1419829654273130506", // emoji customizado
-  "719024507293139014": "🍌"                      // outro usuário exemplo
+  "719024507293139014": "🍅",                     // emoji normal
+  "606183739084636198": "smili:1419829654273130506" // emoji customizado
 };
 
 client.once("ready", () => {
@@ -49,11 +43,29 @@ client.on("messageCreate", async (message) => {
   if (!emoji) return;
 
   try {
-    await message.react(emoji);
-    console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+    // Se for emoji customizado
+    if (emoji.includes(":")) {
+      const [name, id] = emoji.split(":");
+      const emojiObj = client.emojis.cache.get(id);
+      if (emojiObj) {
+        await message.react(emojiObj);
+        console.log(`✅ Reagi com emoji customizado ${emojiObj.name} à mensagem de ${message.author.tag}`);
+      } else {
+        console.log(`❌ Emoji customizado ${name}:${id} não encontrado no cache do bot`);
+      }
+    } else {
+      // Emoji normal
+      await message.react(emoji);
+      console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+    }
   } catch (err) {
     console.error("❌ Erro ao reagir:", err);
   }
 });
+
+if (!TOKEN) {
+  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
+  process.exit(1);
+}
 
 client.login(TOKEN);
