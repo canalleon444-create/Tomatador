@@ -26,10 +26,12 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// Defina aqui os usuários e emojis (vários emojis por usuário em array)
+// Defina os usuários e emojis aqui
+// Para emojis customizados use apenas o ID do emoji, e o bot precisa ter acesso a ele
 const reactionsMap = {
   "782961153012793375": ["🍅"],
-  "606183739084636198": [":smili:1419829654273130506"]
+  "606183739084636198": ["1419829654273130506"], // primeiro emoji custom, segundo normal
+  "719024507293139014": ["🍌""] // exemplo de outro usuário
 };
 
 client.once("ready", () => {
@@ -44,10 +46,10 @@ client.on("messageCreate", async (message) => {
 
   for (const emoji of emojis) {
     try {
-      await message.react(emoji);
+      await message.react(emoji); // funciona com Unicode ou ID de emoji custom
       console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
     } catch (err) {
-      console.error(`Erro ao reagir com ${emoji}:`, err);
+      console.error("Erro ao reagir:", err);
     }
   }
 });
