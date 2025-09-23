@@ -15,7 +15,8 @@
     "discord.js": "^14.15.0",
     "node-fetch": "^3.3.2",
     "@napi-rs/canvas": "^0.1.53",
-    "gif-encoder-2": "^1.0.5"
+    "gif-encoder-2": "^1.0.5",
+    "dotenv": "^16.4.5"
   },
   "author": "SeuNome",
   "license": "MIT"
