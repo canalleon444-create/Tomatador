@@ -26,10 +26,10 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// Defina aqui os usuários e emojis (para emojis customizados use "nome:id")
+// Mapa de usuários e emojis (use ID de usuário e ID do emoji customizado)
 const reactionsMap = {
-  "719024507293139014": "🍅",                     // emoji normal
-  "606183739084636198": "smili:1419829654273130506" // emoji customizado
+  "719024507293139014": "🍅", // Emoji padrão
+  "606183739084636198": "1419829654273130506" // Somente ID do emoji customizado
 };
 
 client.once("ready", () => {
@@ -39,25 +39,25 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  const emoji = reactionsMap[message.author.id];
-  if (!emoji) return;
+  const emojiId = reactionsMap[message.author.id];
+  if (!emojiId) return;
 
   try {
-    // Se for emoji customizado
-    if (emoji.includes(":")) {
-      const [name, id] = emoji.split(":");
-      const emojiObj = client.emojis.cache.get(id);
-      if (emojiObj) {
-        await message.react(emojiObj);
-        console.log(`✅ Reagi com emoji customizado ${emojiObj.name} à mensagem de ${message.author.tag}`);
-      } else {
-        console.log(`❌ Emoji customizado ${name}:${id} não encontrado no cache do bot`);
+    let emojiToReact;
+
+    // Se emojiId é número, tentamos pegar do cache de emojis do servidor
+    if (!isNaN(emojiId)) {
+      emojiToReact = message.guild.emojis.cache.get(emojiId);
+      if (!emojiToReact) {
+        console.warn(`⚠️ Emoji customizado ${emojiId} não encontrado no servidor "${message.guild.name}"`);
+        return;
       }
     } else {
-      // Emoji normal
-      await message.react(emoji);
-      console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+      emojiToReact = emojiId; // emoji padrão Unicode
     }
+
+    await message.react(emojiToReact);
+    console.log(`✅ Reagi com ${emojiToReact} à mensagem de ${message.author.tag}`);
   } catch (err) {
     console.error("❌ Erro ao reagir:", err);
   }
