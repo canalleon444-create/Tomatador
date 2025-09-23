@@ -13,10 +13,12 @@ app.listen(PORT, () => {
 
 // --- Bot Discord ---
 require("dotenv").config();
-const { Client, GatewayIntentBits, SlashCommandBuilder } = require("discord.js");
-const fetch = require("node-fetch");
-const { createCanvas, loadImage } = require("@napi-rs/canvas");
-const GIFEncoder = require("gif-encoder-2");
+const { Client, GatewayIntentBits, SlashCommandBuilder, Routes } = require("discord.js");
+const { REST } = require("@discordjs/rest");
+
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
 
 const client = new Client({
   intents: [
@@ -27,37 +29,39 @@ const client = new Client({
   ],
 });
 
-const TOKEN = process.env.TOKEN;
-
-// Map de usuários e seus respectivos emojis
-// Use "<:nome:ID>" para emojis customizados
+// --- Map de usuários e seus respectivos emojis ---
 const reactionsMap = {
   "782961153012793375": "🍅", // emoji normal
   "948716563723325540": "<:smili:1369088199619772548>", // emoji customizado
   "719024507293139014": "🍌",
-  // Adicione mais usuários se quiser:
-  // "ID_DO_USUARIO": "EMOJI"
+  // Adicione mais usuários se quiser
 };
 
-client.once("ready", async () => {
-  console.log(`🤖 Bot online como ${client.user.tag}`);
+// --- Registrar slash command ---
+const commands = [
+  new SlashCommandBuilder()
+    .setName("tomate")
+    .setDescription("Atira um tomate em alguém!")
+].map(cmd => cmd.toJSON());
 
-  // Registrar comando /tomate
-  const data = [
-    new SlashCommandBuilder()
-      .setName("tomate")
-      .setDescription("Joga um tomate na cabeça do usuário")
-      .addUserOption(option =>
-        option.setName("alvo")
-          .setDescription("Quem vai levar a tomatada")
-          .setRequired(true)
-      )
-      .toJSON()
-  ];
-  await client.application.commands.set(data);
-  console.log("✅ Comando /tomate registrado");
+const rest = new REST({ version: "10" }).setToken(TOKEN);
+
+(async () => {
+  try {
+    console.log("Registrando comandos...");
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    console.log("Comandos registrados!");
+  } catch (err) {
+    console.error(err);
+  }
+})();
+
+// --- Eventos ---
+client.once("ready", () => {
+  console.log(`🤖 Bot online como ${client.user.tag}`);
 });
 
+// Reações automáticas por usuário
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -72,51 +76,21 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// --- Comando /tomate ---
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName !== "tomate") return;
+// Slash command /tomate
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isCommand()) return;
 
-  const user = interaction.options.getUser("alvo");
-  const avatarURL = user.displayAvatarURL({ extension: "png", size: 256 });
-
-  await interaction.deferReply();
-
-  try {
-    const avatar = await loadImage(avatarURL);
-    const tomato = await loadImage("https://i.imgur.com/9l7V9EY.png"); // PNG transparente de tomate
-
-    const canvas = createCanvas(256, 256);
-    const ctx = canvas.getContext("2d");
-
-    const encoder = new GIFEncoder(256, 256);
-    encoder.setDelay(100);
-    encoder.start();
-
-    // Frames do GIF (tomate descendo)
-    for (let y = -100; y < 180; y += 20) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(avatar, 0, 0, 256, 256);
-      ctx.drawImage(tomato, 80, y, 100, 100);
-      encoder.addFrame(ctx);
-    }
-
-    encoder.finish();
-    const buffer = encoder.out.getData();
-
-    await interaction.editReply({
-      content: `🍅 ${user.username} levou uma tomatada!`,
-      files: [{ attachment: buffer, name: "tomatada.gif" }]
+  if (interaction.commandName === "tomate") {
+    await interaction.reply({
+      content: "💀 Tomatada!",
+      files: ["https://i.imgur.com/F5bOIyA.gif"]
     });
-
-  } catch (err) {
-    console.error("❌ Erro ao gerar gif:", err);
-    await interaction.editReply("⚠️ Não consegui gerar o gif...");
   }
 });
 
-if (!TOKEN) {
-  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
+// --- Login ---
+if (!TOKEN || !CLIENT_ID || !GUILD_ID) {
+  console.error("⚠️ Faltando variáveis de ambiente no .env");
   process.exit(1);
 }
 

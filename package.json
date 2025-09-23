@@ -1,8 +1,9 @@
 {
-  "name": "meu-bot",
+  "name": "tomatador-bot",
   "version": "1.0.0",
-  "description": "Bot do Discord com GIF animado fixo",
+  "description": "Bot do Discord com reações automáticas e comando /tomate",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
@@ -10,10 +11,10 @@
     "node": "22.x"
   },
   "dependencies": {
-    "discord.js": "^14.17.0",
-    "dotenv": "^16.0.0",
+    "discord.js": "^14.15.1",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "jimp": "^0.22.9",
-    "gifencoder": "^2.0.0"
+    "@discordjs/rest": "^1.5.2",
+    "axios": "^1.6.5"
   }
 }
