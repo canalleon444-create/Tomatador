@@ -20,18 +20,17 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions
+    GatewayIntentBits.GuildMessageReactions,
   ],
 });
 
 const TOKEN = process.env.TOKEN;
 
-// Defina os usuários e emojis aqui
-// Para emojis customizados use apenas o ID do emoji, e o bot precisa ter acesso a ele
+// --- Defina os usuários e seus emojis ---
 const reactionsMap = {
-  "782961153012793375": ["🍅"],
-  "606183739084636198": ["1419829654273130506"], // primeiro emoji custom, segundo normal
-  "719024507293139014": ["🍌""] // exemplo de outro usuário
+  "782961153012793375": "🍅",                         // Usuário normal
+  "606183739084636198": "<:smili:1419829654273130506>", // Usuário com emoji customizado
+  "123456789012345678": "🍌"                          // Outro usuário exemplo
 };
 
 client.once("ready", () => {
@@ -41,16 +40,14 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  const emojis = reactionsMap[message.author.id];
-  if (!emojis) return;
+  const emoji = reactionsMap[message.author.id];
+  if (!emoji) return;
 
-  for (const emoji of emojis) {
-    try {
-      await message.react(emoji); // funciona com Unicode ou ID de emoji custom
-      console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
-    } catch (err) {
-      console.error("Erro ao reagir:", err);
-    }
+  try {
+    await message.react(emoji);
+    console.log(`Reagi com ${emoji} à mensagem de ${message.author.tag}`);
+  } catch (err) {
+    console.error("Erro ao reagir:", err);
   }
 });
 
