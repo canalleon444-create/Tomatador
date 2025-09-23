@@ -29,8 +29,9 @@ const TOKEN = process.env.TOKEN;
 // Map de usuários e seus respectivos emojis
 // Use "<:nome:ID>" para emojis customizados
 const reactionsMap = {
-  "719024507293139014": "🍅", // emoji normal
-  "606183739084636198": "<:smili:1369088199619772548>", // emoji customizado
+  "782961153012793375": "🍅", // emoji normal
+  "948716563723325540": "<:smili:1369088199619772548>", // emoji customizado
+  "719024507293139014": "🍌",
   // Adicione mais usuários se quiser:
   // "ID_DO_USUARIO": "EMOJI"
 };
