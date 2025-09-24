@@ -13,12 +13,8 @@ app.listen(PORT, () => {
 
 // --- Bot Discord ---
 require("dotenv").config();
-const { Client, GatewayIntentBits, SlashCommandBuilder, Routes } = require("discord.js");
-const { REST } = require("@discordjs/rest");
-
-const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const GUILD_ID = process.env.GUILD_ID;
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
+const path = require("path");
 
 const client = new Client({
   intents: [
@@ -29,39 +25,60 @@ const client = new Client({
   ],
 });
 
-// --- Map de usuários e seus respectivos emojis ---
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
+
+// Map de usuários e seus respectivos emojis (para reações automáticas)
 const reactionsMap = {
   "782961153012793375": "🍅", // emoji normal
   "948716563723325540": "<:smili:1369088199619772548>", // emoji customizado
   "719024507293139014": "🍌",
-  // Adicione mais usuários se quiser
 };
 
-// --- Registrar slash command ---
-const commands = [
-  new SlashCommandBuilder()
-    .setName("tomate")
-    .setDescription("Atira um tomate em alguém!")
-].map(cmd => cmd.toJSON());
-
-const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-(async () => {
-  try {
-    console.log("Registrando comandos...");
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-    console.log("Comandos registrados!");
-  } catch (err) {
-    console.error(err);
-  }
-})();
-
-// --- Eventos ---
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`🤖 Bot online como ${client.user.tag}`);
+
+  // --- Registro do slash command /tomate ---
+  const commands = [
+    new SlashCommandBuilder()
+      .setName("tomate")
+      .setDescription("Leva uma tomatada!")
+      .toJSON()
+  ];
+
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
+  try {
+    console.log("🚀 Registrando comando /tomate...");
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+    console.log("✅ Comando registrado com sucesso!");
+  } catch (err) {
+    console.error("❌ Erro ao registrar comando:", err);
+  }
 });
 
-// Reações automáticas por usuário
+// --- Evento de slash command ---
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+
+  if (interaction.commandName === "tomate") {
+    try {
+      // Caminho do GIF local
+      const gifPath = path.join(__dirname, "assets", "F5bOIyA.gif");
+      const attachment = new AttachmentBuilder(gifPath);
+
+      await interaction.reply({ content: `${interaction.user} levou uma tomatada! 💀`, files: [attachment] });
+    } catch (err) {
+      console.error("❌ Erro ao enviar GIF do tomate:", err);
+      await interaction.reply("❌ Erro ao gerar o GIF do tomate.");
+    }
+  }
+});
+
+// --- Evento de mensagens para reações ---
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -76,21 +93,9 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// Slash command /tomate
-client.on("interactionCreate", async interaction => {
-  if (!interaction.isCommand()) return;
-
-  if (interaction.commandName === "tomate") {
-    await interaction.reply({
-      content: "💀 Tomatada!",
-      files: ["https://i.imgur.com/F5bOIyA.gif"]
-    });
-  }
-});
-
-// --- Login ---
-if (!TOKEN || !CLIENT_ID || !GUILD_ID) {
-  console.error("⚠️ Faltando variáveis de ambiente no .env");
+// --- Login do bot ---
+if (!TOKEN) {
+  console.error("⚠️ Faltando TOKEN no .env / Environment Variables");
   process.exit(1);
 }
 
