@@ -1,5 +1,3 @@
-// index.cjs
-
 // --- Servidor fake para Render ---
 const express = require("express");
 const app = express();
@@ -15,93 +13,85 @@ app.listen(PORT, () => {
 
 // --- Bot Discord ---
 require("dotenv").config();
-const { Client, GatewayIntentBits, Partials, REST, Routes } = require("discord.js");
-const fs = require("fs");
-const path = require("path");
-
-const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const GUILD_ID = process.env.GUILD_ID;
-const EMOJI = process.env.EMOJI || "🍅";
+const { Client, GatewayIntentBits, AttachmentBuilder } = require("discord.js");
+const Canvas = require("canvas");
+const axios = require("axios");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageReactions
   ],
-  partials: [Partials.Channel],
 });
 
-// Map de usuários e seus respectivos emojis (mensagens gerais)
+const TOKEN = process.env.TOKEN;
+
+// Map de usuários e seus respectivos emojis
 const reactionsMap = {
-  "782961153012793375": "🍅",
-  "948716563723325540": "<:smili:1369088199619772548>",
+  "782961153012793375": "🍅", // emoji normal
+  "948716563723325540": "<:smili:1369088199619772548>", // emoji customizado
   "719024507293139014": "🍌",
 };
 
-// Registro do comando /tomate
-const commands = [
-  { name: "tomate", description: "Leva uma tomatada!" },
-];
-
-const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-(async () => {
+// Função para gerar GIF do tomate sobre avatar
+async function generateTomatoGif(avatarUrl) {
   try {
-    console.log("🚀 Registrando comando /tomate...");
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-    console.log("✅ Comando registrado com sucesso!");
-  } catch (err) {
-    console.error(err);
-  }
-})();
+    const tomatoGifUrl = "https://i.imgur.com/F5bOIyA.gif"; // GIF do tomate
+    const [avatarResp, tomatoResp] = await Promise.all([
+      axios.get(avatarUrl, { responseType: "arraybuffer" }),
+      axios.get(tomatoGifUrl, { responseType: "arraybuffer" })
+    ]);
 
-// Evento quando o bot estiver pronto
+    const avatar = await Canvas.loadImage(avatarResp.data);
+    const tomato = await Canvas.loadImage(tomatoResp.data);
+
+    const canvas = Canvas.createCanvas(avatar.width, avatar.height);
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(avatar, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(tomato, 0, 0, canvas.width, canvas.height);
+
+    return canvas.toBuffer("image/gif"); // retorna GIF
+  } catch (err) {
+    console.error("❌ Erro ao gerar o GIF do tomate.", err);
+    return null;
+  }
+}
+
 client.once("ready", () => {
   console.log(`🤖 Bot online como ${client.user.tag}`);
 });
 
-// Evento para reagir a mensagens normais
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
+
   const emoji = reactionsMap[message.author.id];
-  if (!emoji) return;
-
-  try {
-    await message.react(emoji);
-    console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
-  } catch (err) {
-    console.error("❌ Erro ao reagir:", err);
-  }
-});
-
-// Evento para interações (comando /tomate)
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName === "tomate") {
+  if (emoji) {
     try {
-      await interaction.deferReply();
-
-      const gifPath = path.join(__dirname, "assets", "F5bOIyA.gif");
-      if (!fs.existsSync(gifPath)) {
-        return interaction.editReply("❌ GIF do tomate não encontrado.");
-      }
-
-      await interaction.editReply({
-        content: `${EMOJI} nofirepqp levou uma tomatada!`,
-        files: [gifPath],
-      });
+      await message.react(emoji);
+      console.log(`✅ Reagi com ${emoji} à mensagem de ${message.author.tag}`);
     } catch (err) {
-      console.error("❌ Erro ao enviar GIF do tomate:", err);
-      if (interaction.deferred || interaction.replied) {
-        interaction.editReply("❌ Erro ao enviar o GIF do tomate.");
-      } else {
-        interaction.reply("❌ Erro ao enviar o GIF do tomate.");
-      }
+      console.error("❌ Erro ao reagir:", err);
     }
+  }
+
+  if (message.content.startsWith("!tomate")) {
+    const mention = message.mentions.users.first();
+    if (!mention) return message.reply("⚠️ Você precisa mencionar alguém!");
+
+    const avatarUrl = mention.displayAvatarURL({ extension: "png", size: 512 });
+
+    const gifBuffer = await generateTomatoGif(avatarUrl);
+    if (!gifBuffer) return message.reply("❌ Erro ao gerar o GIF do tomate.");
+
+    const attachment = new AttachmentBuilder(gifBuffer, { name: "tomate.gif" });
+
+    message.channel.send({
+      content: `💀 ${mention.username} levou uma tomatada!`,
+      files: [attachment]
+    });
   }
 });
 
